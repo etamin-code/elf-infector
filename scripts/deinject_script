@@ -1,0 +1,43 @@
+#!/bin/bash -f
+path=$1
+payload=$2
+shopt -s globstar
+
+if [[ -f $path ]]; then
+  h=$(head -c 4 $path)
+  h=${h:1:3}
+  if [[ $h = ELF ]];then
+    echo $path
+    is_injected=$(./build/detector $path $payload)
+    if [[ $is_injected = 1 ]];then
+      echo deinjecting
+      ./build/deinjector $path $payload
+    else
+      echo file is not injected
+    fi
+    echo
+  fi
+
+  elif [[ -d $path ]];then
+    for file in `ls -d $path/**`
+      do
+       if [[ -f $file ]]; then
+          (( NUM_OF_FILES++ ))
+          h=$(head -c 4 $file)
+          h=${h:1:3}
+
+          if [[ $h = ELF ]];then
+            echo $file
+            is_injected=$(./build/detector $file $payload)
+            if [[ $is_injected = 1 ]];then
+              echo deinjecting
+              ./build/deinjector $file $payload
+            else
+              echo file is not injected
+            fi
+          echo
+          fi
+       fi
+    done
+fi
+

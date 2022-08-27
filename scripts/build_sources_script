@@ -1,0 +1,9 @@
+#!/bin/bash
+
+gcc src/injector.c -o build/injector
+gcc src/detector.c -o build/detector
+gcc src/deinjector.c -o build/deinjector
+gcc src/hello.c -o build/hello
+as src/payload.s -o build/payload.o
+objcopy -O binary build/payload.o build/payload
+
