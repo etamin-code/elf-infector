@@ -13,8 +13,10 @@ goes to the end of payload, take the adress of original ep, and replace injected
 
 ## usage
 git clone https://github.com/etamin-code/elf-infector
+
 cd elf-infector
 mkdir build
+
 bash scripts/build_sources_script
 
 bash scripts/detect_script elfs_for_testing/ build/payload #check the correct work
