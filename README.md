@@ -20,15 +20,19 @@ mkdir build
 bash scripts/build_sources_script
 
 bash scripts/detect_script elfs_for_testing/ build/payload #check the correct work
+
 ./elfs_for_testing/hello
 
 bash scripts/inject_script elfs_for_testing/ build/payload
 
 bash scripts/detect_script elfs_for_testing/ build/payload #check the work after injecting
+
 ./elfs_for_testing/hello
 
 bash scripts/deinject_script elfs_for_testing/ build/payload #check the work after deinjecting
+
 bash scripts/detect_script elfs_for_testing/ build/payload
+
 ./elfs_for_testing/hello
 
 ## example of usage
